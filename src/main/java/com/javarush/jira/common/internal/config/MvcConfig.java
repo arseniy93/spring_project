@@ -95,4 +95,5 @@ public class MvcConfig implements WebMvcConfigurer {
                 .setReadTimeout(Duration.ofSeconds(10))
                 .build();
     }
+
 }

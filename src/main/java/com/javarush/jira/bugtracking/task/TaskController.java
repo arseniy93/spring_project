@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static com.javarush.jira.common.BaseHandler.createdResponse;
 
@@ -40,6 +41,15 @@ public class TaskController {
     private final Handlers.ActivityHandler activityHandler;
     private final UserBelongRepository userBelongRepository;
 
+    @GetMapping("time-task/{id}")
+    public String readyTask(@PathVariable long id){
+        return taskService.timeOfCompleteTask(id);
+    }
+
+    @GetMapping("time-test/{id}")
+    public String readyTest(@PathVariable long id){
+        return taskService.timeOfCompleteTest(id);
+    }
 
     @GetMapping("/{id}")
     public TaskToFull get(@PathVariable long id) {
@@ -150,6 +160,32 @@ public class TaskController {
     public void delete(@PathVariable long id) {
         activityService.delete(id);
     }
+
+    @PostMapping(value = "/tags/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addTag(@Valid @RequestBody Set<String> tags,@PathVariable long id) {
+        taskService.setTags(id, tags);
+    }
+
+
+
+    // @Post
+//    @GetMapping(path = "/task-tags/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public Set<String> getTagsByTaskId(@PathVariable long id) {
+//        return taskService.tags(id);
+//    }
+//
+//    @GetMapping(path = "/task-tags/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public List<Task> getTaskByTags(@Valid @RequestBody Set<String> tags) {
+//        return taskService.getTaskByTags(tags);
+//    }
+
+
+//    @PutMapping(path = "/task-tag/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    @ResponseStatus(HttpStatus.NO_CONTENT)
+//    public void updateTask(@PathVariable long id, @Valid @RequestBody String... tags) {
+//        taskService.setTagToTask(id, tags);
+//    }
 
     private record TaskTreeNode(TaskTo taskTo, List<TaskTreeNode> subNodes) implements ITreeNode<TaskTo, TaskTreeNode> {
         public TaskTreeNode(TaskTo taskTo) {

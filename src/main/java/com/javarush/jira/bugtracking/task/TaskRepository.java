@@ -7,9 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Transactional(readOnly = true)
 public interface TaskRepository extends BaseRepository<Task> {
+//    @Query("SELECT t FROM Task t WHERE t.tags =:tags ORDER BY t.id DESC")
+//    List<Task> findAllByTags(Set<String> tags);
     @Query("SELECT t FROM Task t WHERE t.sprintId =:sprintId ORDER BY t.startpoint DESC")
     List<Task> findAllBySprintId(long sprintId);
 
