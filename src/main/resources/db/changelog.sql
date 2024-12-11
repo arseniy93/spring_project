@@ -1,5 +1,6 @@
 --liquibase formatted sql
-
+DROP TABLE DATABASECHANGELOG;
+DROP TABLE DATABASECHANGELOGLOCK;
 --changeset kmpk:init_schema
 DROP TABLE IF EXISTS USER_ROLE;
 DROP TABLE IF EXISTS CONTACT;
@@ -247,6 +248,7 @@ values ('assigned', 'Assigned', 6, '1'),
        ('canceled', 'Canceled', 3, null);
 
 --changeset gkislin:change_backtracking_tables
+
 
 alter table SPRINT rename COLUMN TITLE to CODE;
 alter table SPRINT

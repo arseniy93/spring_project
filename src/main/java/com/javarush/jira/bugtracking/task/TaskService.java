@@ -15,18 +15,22 @@ import com.javarush.jira.common.util.Util;
 import com.javarush.jira.login.AuthUser;
 import com.javarush.jira.ref.RefType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.javarush.jira.bugtracking.ObjectType.TASK;
 import static com.javarush.jira.bugtracking.task.TaskUtil.fillExtraFields;
 import static com.javarush.jira.bugtracking.task.TaskUtil.makeActivity;
 import static com.javarush.jira.ref.ReferenceService.getRefTo;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TaskService {
@@ -39,6 +43,25 @@ public class TaskService {
     private final SprintRepository sprintRepository;
     private final TaskExtMapper extMapper;
     private final UserBelongRepository userBelongRepository;
+
+
+//    public List<Task> getTaskByTags(Set<String> tags) {
+//        return handler.getRepository().findAllByTags(tags);
+//    }
+//
+//    public Set<String> tags(long idOfTask) {
+//        return handler.getRepository().findFullById(idOfTask).get().getTags();
+//    }
+
+    @Transactional
+    public void setTags(long id, Set<String> tags) {
+        var task = handler.getRepository().findFullById(id).get();
+        Set<String> unionSet = new HashSet<>(tags);
+        unionSet.addAll(task.getTags());
+        task.setTags(new HashSet<>());
+        task.setTags(unionSet);
+        handler.update(task, id);
+    }
 
     @Transactional
     public void changeStatus(long taskId, String statusCode) {
@@ -53,6 +76,62 @@ public class TaskService {
             if (userType != null) {
                 handler.createUserBelong(taskId, TASK, AuthUser.authId(), userType);
             }
+        }
+    }
+
+    public String timeOfCompleteTask(long taskId) {
+        var previousTime = handler.getRepository().getExisted(taskId).getActivities()
+                .stream()
+                .filter(x -> x.getStatusCode().equalsIgnoreCase("ready_for_review"))
+                .findFirst()
+                .get()
+                .getUpdated();
+        if (previousTime!=null) {
+            var timeInProgress= handler.getRepository().getExisted(taskId).getActivities()
+                    .stream()
+                    .filter(x -> x.getStatusCode().equalsIgnoreCase("in_progress"))
+                    .findFirst()
+                    .get()
+                    .getUpdated();
+            var duration= Duration.between(timeInProgress,previousTime);
+            long days = duration.toDays(); // Полное количество дней
+            long hours = duration.toHours() % 24; // Часы, не входящие в дни
+            long minutes = duration.toMinutes() % 60; // Минуты, не входящие в часы
+            long seconds = duration.getSeconds() % 60; // Секунды, не входящие в минуты
+
+            log.info("Задача c id={} выполнена",taskId);
+            return String.format("%d дней %d час(ов) %d минут(ы) %d секунд",days , hours, minutes, seconds);
+        } else {
+            log.info("Задача c id={} еще дорабатывается",taskId);
+            return "Task is still been working ";
+        }
+    }
+
+    public String timeOfCompleteTest(long taskId) {
+        var previousTime = handler.getRepository().getExisted(taskId).getActivities()
+                .stream()
+                .filter(x -> x.getStatusCode().equalsIgnoreCase("done"))
+                .findFirst()
+                .get()
+                .getUpdated();
+        if (previousTime!=null) {
+            var timeInProgress= handler.getRepository().getExisted(taskId).getActivities()
+                    .stream()
+                    .filter(x -> x.getStatusCode().equalsIgnoreCase("ready_for_review"))
+                    .findFirst()
+                    .get()
+                    .getUpdated();
+            var duration= Duration.between(previousTime,timeInProgress);
+            long days = duration.toDays(); // Полное количество дней
+            long hours = duration.toHours() % 24; // Часы, не входящие в дни
+            long minutes = duration.toMinutes() % 60; // Минуты, не входящие в часы
+            long seconds = duration.getSeconds() % 60; // Секунды, не входящие в минуты
+
+            log.info("Задача c id={} протестированна",taskId);
+            return String.format("%d дней %d час(ов) %d минут(ы) %d секунд",days , hours, minutes, seconds);
+        } else {
+            log.info("Задача c id={} еще тестируется",taskId);
+            return "Task is still been testing ";
         }
     }
 

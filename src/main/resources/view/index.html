@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!--/*@thymesVar id="authUser" type="com.javarush.jira.login.AuthUser"*/-->
+
+<th:block th:replace="~{layout/main::page(title='JiraRush: mini bugtracking system',appMain=~{::appMain})}">
+    <appMain>
+        <select id="languageSelector" onchange="changeLanguage(this.value)">
+            <option value="en" th:selected="${#locale.language == 'en'}">English</option>
+            <option value="ru" th:selected="${#locale.language == 'ru'}">Русский</option>
+        </select>
+
+        <script>
+            function changeLanguage(lang) {
+                window.location.href = "?lang=" + lang;
+            }
+        </script>
+        <h1> <p th:text=" #{labael.jira_name} "></p></h1>
+        <div th:if="${authUser} != null">
+            <form action="/ui/logout" method="post">
+                <button class="btn btn-primary btn-lg mt-3" type="submit"><span th:text="#{label.logout}"></span></button>
+            </form>
+        </div>
+    </appMain>
+</th:block>

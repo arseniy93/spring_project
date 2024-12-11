@@ -1,5 +1,6 @@
 package com.javarush.jira.common.internal.config;
 
+
 import com.javarush.jira.login.AuthUser;
 import com.javarush.jira.login.Role;
 import com.javarush.jira.login.internal.UserRepository;

@@ -5,6 +5,7 @@ import com.javarush.jira.bugtracking.sprint.Sprint;
 import com.javarush.jira.common.HasCode;
 import com.javarush.jira.common.model.TitleEntity;
 import com.javarush.jira.common.util.validation.Code;
+import com.javarush.jira.login.Role;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -14,6 +15,7 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +46,8 @@ public class Task extends TitleEntity implements HasCode {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Task parent;
 
+
+
     @Column(name = "parent_id")
     private Long parentId;
 
@@ -61,17 +65,19 @@ public class Task extends TitleEntity implements HasCode {
     @Column(name = "sprint_id")
     private Long sprintId;
 
+
     @CollectionTable(name = "task_tag",
             joinColumns = @JoinColumn(name = "task_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"task_id", "tag"}, name = "uk_task_tag"))
+            uniqueConstraints = @UniqueConstraint(columnNames = {"task_id", "tag"}, name = "uk_tag_task"))
     @Column(name = "tag")
-    @ElementCollection(fetch = FetchType.LAZY)
-    @JoinColumn()
+    @ElementCollection(fetch = FetchType.EAGER)
+    @JoinColumn
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<@Size(min = 2, max = 32) String> tags = Set.of();
+    private Set<String> tags;
+
 
     //  history of comments and task fields changing
-    @OneToMany(mappedBy = "taskId", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "taskId", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Activity> activities;
 
     public Task(Long id, String title, String typeCode, String statusCode, Long parentId, long projectId, Long sprintId) {
